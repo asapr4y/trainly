@@ -664,6 +664,10 @@ meter {
   background: rgba(16, 20, 18, 0.38);
 }
 
+.drawer-backdrop[hidden] {
+  display: none;
+}
+
 .drawer {
   width: min(28rem, 100%);
   height: 100%;

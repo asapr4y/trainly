@@ -269,15 +269,27 @@ document.querySelector("[data-search]").addEventListener("input", (event) => {
 });
 
 const drawer = document.querySelector("[data-drawer]");
-document.querySelector("[data-open-client]").addEventListener("click", () => {
+const openDrawer = () => {
   drawer.hidden = false;
+  drawer.setAttribute("aria-hidden", "false");
   drawer.querySelector("input").focus();
+};
+const closeDrawer = () => {
+  drawer.hidden = true;
+  drawer.setAttribute("aria-hidden", "true");
+};
+
+document.querySelector("[data-open-client]").addEventListener("click", () => {
+  openDrawer();
 });
 document.querySelector("[data-close-client]").addEventListener("click", () => {
-  drawer.hidden = true;
+  closeDrawer();
 });
 drawer.addEventListener("click", (event) => {
-  if (event.target === drawer) drawer.hidden = true;
+  if (event.target === drawer) closeDrawer();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !drawer.hidden) closeDrawer();
 });
 
 document.querySelector("[data-client-form]").addEventListener("submit", (event) => {
@@ -303,7 +315,7 @@ document.querySelector("[data-client-form]").addEventListener("submit", (event) 
   renderClients();
   selectClient(0);
   event.currentTarget.reset();
-  drawer.hidden = true;
+  closeDrawer();
 });
 
 renderClients();
