@@ -200,6 +200,33 @@ const metrics = {
   activeClients: document.querySelector("[data-active-clients]"),
   coachCount: document.querySelector("[data-coach-count]")
 };
+const views = Array.from(document.querySelectorAll("[data-view]"));
+const viewNames = new Set(views.map((view) => view.dataset.view));
+const viewLinks = Array.from(document.querySelectorAll("[data-nav-link], [data-view-link]"));
+
+const getViewFromHash = () => {
+  const viewName = window.location.hash.replace("#", "") || "dashboard";
+  return viewNames.has(viewName) ? viewName : "dashboard";
+};
+
+const setActiveView = (viewName, options = {}) => {
+  const nextView = viewNames.has(viewName) ? viewName : "dashboard";
+
+  views.forEach((view) => {
+    view.hidden = view.dataset.view !== nextView;
+  });
+
+  document.querySelectorAll("[data-nav-link]").forEach((link) => {
+    link.classList.toggle("active", link.getAttribute("href") === `#${nextView}`);
+  });
+
+  if (options.updateHash && window.location.hash !== `#${nextView}`) {
+    window.history.pushState(null, "", `#${nextView}`);
+  }
+
+  document.querySelector(".sidebar").classList.remove("open");
+  window.scrollTo(0, 0);
+};
 
 const getStatusTone = (status) => {
   const normalizedStatus = status.toLowerCase();
@@ -438,12 +465,22 @@ document.querySelector("[data-menu-button]").addEventListener("click", () => {
   document.querySelector(".sidebar").classList.toggle("open");
 });
 
-document.querySelectorAll("[data-nav-link]").forEach((link) => {
-  link.addEventListener("click", () => {
-    document.querySelectorAll("[data-nav-link]").forEach((item) => item.classList.remove("active"));
-    link.classList.add("active");
-    document.querySelector(".sidebar").classList.remove("open");
+viewLinks.forEach((link) => {
+  link.addEventListener("click", (event) => {
+    const viewName = link.getAttribute("href")?.replace("#", "");
+    if (!viewName || !viewNames.has(viewName)) return;
+
+    event.preventDefault();
+    setActiveView(viewName, { updateHash: true });
   });
+});
+
+window.addEventListener("hashchange", () => {
+  setActiveView(getViewFromHash());
+});
+
+window.addEventListener("popstate", () => {
+  setActiveView(getViewFromHash());
 });
 
 searchInput.addEventListener("input", renderClients);
@@ -528,6 +565,7 @@ clientForm.addEventListener("submit", (event) => {
 });
 
 updateClientMetrics();
+setActiveView(getViewFromHash());
 renderClients();
 selectClient(activeClientId);
 renderWorkout();

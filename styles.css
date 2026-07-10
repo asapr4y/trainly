@@ -265,6 +265,10 @@ a {
   margin-bottom: 1rem;
 }
 
+[data-view][hidden] {
+  display: none;
+}
+
 .hero-section {
   min-height: 26rem;
   display: grid;

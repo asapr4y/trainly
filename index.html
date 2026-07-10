@@ -60,7 +60,7 @@
           <button class="primary-action" type="button" data-open-client>New Client</button>
         </header>
 
-        <section id="dashboard" class="section hero-section">
+        <section id="dashboard" class="section hero-section" data-view="dashboard">
           <div class="hero-copy">
             <p class="eyebrow">Fitness coaching command center</p>
             <h1>Manage every client, workout, session, and progress update from one clean workspace.</h1>
@@ -69,8 +69,8 @@
               burying the work in spreadsheets.
             </p>
             <div class="hero-actions">
-              <a class="primary-action" href="#clients">Review Clients</a>
-              <a class="secondary-action" href="#workouts">Build Plan</a>
+              <a class="primary-action" href="#clients" data-view-link="clients">Review Clients</a>
+              <a class="secondary-action" href="#workouts" data-view-link="workouts">Build Plan</a>
             </div>
           </div>
 
@@ -108,7 +108,7 @@
           </div>
         </section>
 
-        <section class="metric-grid" aria-label="Coach metrics">
+        <section class="metric-grid" aria-label="Coach metrics" data-view="dashboard">
           <article class="metric-card">
             <span>Active Clients</span>
             <strong data-active-clients>4</strong>
@@ -131,7 +131,7 @@
           </article>
         </section>
 
-        <section id="clients" class="section two-column">
+        <section id="clients" class="section two-column" data-view="clients" hidden>
           <div class="section-heading">
             <p class="eyebrow">Client management</p>
             <h2>Keep every athlete's context in reach.</h2>
@@ -182,7 +182,7 @@
           </div>
         </section>
 
-        <section id="workouts" class="section">
+        <section id="workouts" class="section" data-view="workouts" hidden>
           <div class="section-heading row-heading">
             <div>
               <p class="eyebrow">Workout builder</p>
@@ -223,7 +223,7 @@
           </div>
         </section>
 
-        <section id="sessions" class="section">
+        <section id="sessions" class="section" data-view="sessions" hidden>
           <div class="section-heading">
             <p class="eyebrow">Session scheduling</p>
             <h2>Track upcoming sessions, attendance, and coaching notes.</h2>
@@ -232,7 +232,7 @@
           <div class="session-grid" data-session-grid></div>
         </section>
 
-        <section id="progress" class="section progress-section">
+        <section id="progress" class="section progress-section" data-view="progress" hidden>
           <div class="section-heading row-heading">
             <div>
               <p class="eyebrow">Progress tracking</p>
@@ -273,7 +273,7 @@
           </div>
         </section>
 
-        <section id="checkins" class="section">
+        <section id="checkins" class="section" data-view="checkins" hidden>
           <div class="section-heading">
             <p class="eyebrow">Client check-ins</p>
             <h2>Catch recovery issues before they become missed sessions.</h2>
