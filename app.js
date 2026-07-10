@@ -359,6 +359,38 @@ let sessionFilter = "upcoming";
 let checkinFilter = "open";
 let drawerContext = null;
 
+const canonicalClientNames = {
+  "client-maya": "Maya Chen",
+  "client-jon": "Jon Bell",
+  "client-sofia": "Sofia Cruz",
+  "client-andre": "Andre Ramos"
+};
+
+const reconcileClientReferences = () => {
+  const clientIds = new Set(clients.map((client) => client.id));
+  const clientByName = new Map(clients.map((client) => [client.name.toLowerCase(), client.id]));
+  const resolveClientId = (clientId) => {
+    if (clientIds.has(clientId)) return clientId;
+    const canonicalName = canonicalClientNames[clientId];
+    return canonicalName ? clientByName.get(canonicalName.toLowerCase()) || clientId : clientId;
+  };
+
+  sessions = sessions.map((session) => ({ ...session, clientId: resolveClientId(session.clientId) }));
+  progressEntries = progressEntries.map((entry) => ({ ...entry, clientId: resolveClientId(entry.clientId) }));
+  checkins = checkins.map((checkin) => ({ ...checkin, clientId: resolveClientId(checkin.clientId) }));
+  workouts = workouts.map((workout) => ({
+    ...workout,
+    clientIds: workout.clientIds.map(resolveClientId)
+  }));
+
+  stores.sessions.saveAll(sessions);
+  stores.progress.saveAll(progressEntries);
+  stores.checkins.saveAll(checkins);
+  stores.workouts.saveAll(workouts);
+};
+
+reconcileClientReferences();
+
 const elements = {
   sidebar: document.querySelector("[data-sidebar]"),
   search: document.querySelector("[data-search]"),

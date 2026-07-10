@@ -216,8 +216,9 @@ h3 {
   top: 0;
   z-index: 20;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: minmax(14rem, 22rem) auto;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
   padding: 0.75rem;
   margin-bottom: var(--space-3);
@@ -225,6 +226,10 @@ h3 {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   backdrop-filter: blur(18px);
+}
+
+.topbar .primary-action {
+  justify-self: end;
 }
 
 .menu-button,
@@ -470,22 +475,32 @@ button:disabled {
 .spotlight-panel {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   background: #f8fbf8;
   color: var(--text);
-  min-height: 16rem;
+  min-height: 14rem;
+}
+
+.spotlight-panel .panel-header {
+  margin-bottom: var(--space-3);
+}
+
+.spotlight-panel [data-dashboard-spotlight] {
+  display: grid;
+  gap: var(--space-2);
 }
 
 .spotlight-client {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-1);
 }
 
 .spotlight-client strong {
   display: block;
-  font-size: var(--font-lg);
+  font-size: var(--font-md);
+  line-height: 1.2;
 }
 
 .spotlight-client small {
@@ -493,8 +508,9 @@ button:disabled {
 }
 
 .spotlight-panel > div:not(.panel-header) > p:first-of-type {
-  margin-bottom: var(--space-2);
-  font-size: var(--font-lg);
+  margin-bottom: 0;
+  font-size: var(--font-md);
+  line-height: 1.35;
   font-weight: 900;
 }
 
@@ -503,7 +519,7 @@ button:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-top: var(--space-3);
+  margin-top: var(--space-2);
 }
 
 .spotlight-empty {
