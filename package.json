@@ -1,0 +1,11 @@
+{
+  "name": "trainly",
+  "version": "1.0.0",
+  "description": "A fitness coaching platform for managing clients, workouts, sessions, and progress tracking.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "build": "node build.mjs"
+  }
+}
