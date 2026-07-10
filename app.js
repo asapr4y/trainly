@@ -1,4 +1,4 @@
-const clients = [
+const defaultClients = [
   {
     initials: "MC",
     name: "Maya Chen",
@@ -44,6 +44,82 @@ const clients = [
     note: "Avoid overhead pressing this block. Landmine press and tempo rows are moving well."
   }
 ];
+
+const storageKey = "trainly.clients.v1";
+const storage = typeof window !== "undefined" ? window.localStorage : null;
+
+const createId = () => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `client-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
+
+const getInitials = (name) =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+const escapeHtml = (value) =>
+  String(value).replace(/[&<>"']/g, (character) => {
+    const entities = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    };
+    return entities[character];
+  });
+
+const withClientDefaults = (client) => {
+  const name = String(client.name || "Unnamed Client").trim() || "Unnamed Client";
+
+  return {
+    id: client.id || createId(),
+    initials: client.initials || getInitials(name),
+    name,
+    level: String(client.level || "Beginner"),
+    goal: String(client.goal || "No goal set yet."),
+    progress: String(client.progress || "0%"),
+    attendance: String(client.attendance || "New"),
+    nextSession: String(client.nextSession || "Not scheduled"),
+    status: String(client.status || "Active"),
+    note: String(client.note || "No coaching note yet.")
+  };
+};
+
+const loadClients = () => {
+  if (!storage) return defaultClients.map(withClientDefaults);
+
+  try {
+    const storedValue = storage.getItem(storageKey);
+    if (storedValue === null) {
+      return defaultClients.map(withClientDefaults);
+    }
+
+    const storedClients = JSON.parse(storedValue);
+    if (!Array.isArray(storedClients)) return defaultClients.map(withClientDefaults);
+
+    return storedClients.map(withClientDefaults);
+  } catch {
+    return defaultClients.map(withClientDefaults);
+  }
+};
+
+const saveClients = () => {
+  if (!storage) return;
+  storage.setItem(storageKey, JSON.stringify(clients));
+};
+
+let clients = loadClients();
+let activeClientId = clients[0]?.id ?? null;
+let editingClientId = null;
 
 const workouts = {
   Strength: {
@@ -103,6 +179,13 @@ const checkins = [
 ];
 
 const clientList = document.querySelector("[data-client-list]");
+const searchInput = document.querySelector("[data-search]");
+const clientForm = document.querySelector("[data-client-form]");
+const drawer = document.querySelector("[data-drawer]");
+const drawerTitle = document.querySelector("[data-drawer-title]");
+const clientSubmit = document.querySelector("[data-client-submit]");
+const editClientButton = document.querySelector("[data-edit-client]");
+const deleteClientButton = document.querySelector("[data-delete-client]");
 const profile = {
   avatar: document.querySelector("[data-profile-avatar]"),
   name: document.querySelector("[data-profile-name]"),
@@ -113,28 +196,86 @@ const profile = {
   session: document.querySelector("[data-profile-session]"),
   note: document.querySelector("[data-profile-note]")
 };
+const metrics = {
+  activeClients: document.querySelector("[data-active-clients]"),
+  coachCount: document.querySelector("[data-coach-count]")
+};
+
+const getStatusTone = (status) => {
+  const normalizedStatus = status.toLowerCase();
+
+  if (normalizedStatus.includes("review") || normalizedStatus.includes("pending")) return "amber";
+  if (normalizedStatus.includes("pr") || normalizedStatus.includes("focus")) return "blue";
+  if (normalizedStatus.includes("new")) return "coral";
+  return "green";
+};
+
+const getActiveClient = () => clients.find((client) => client.id === activeClientId) || clients[0] || null;
+
+const updateClientMetrics = () => {
+  const count = clients.length;
+  metrics.activeClients.textContent = count;
+  metrics.coachCount.textContent = count;
+};
 
 const renderClients = () => {
+  const query = searchInput.value.trim().toLowerCase();
+  const visibleClients = clients.filter((client) =>
+    [client.name, client.goal, client.level, client.status].join(" ").toLowerCase().includes(query)
+  );
+
   clientList.innerHTML = "";
-  clients.forEach((client, index) => {
+
+  if (visibleClients.length === 0) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = clients.length === 0 ? "No clients yet. Add your first client." : "No clients match that search.";
+    clientList.append(emptyState);
+    return;
+  }
+
+  visibleClients.forEach((client) => {
     const button = document.createElement("button");
-    button.className = `client-button${index === 0 ? " active" : ""}`;
+    button.className = `client-button${client.id === activeClientId ? " active" : ""}`;
     button.type = "button";
     button.innerHTML = `
-      <span class="avatar">${client.initials}</span>
-      <span><strong>${client.name}</strong><small>${client.goal}</small></span>
-      <span class="pill ${index === 1 ? "amber" : index === 2 ? "blue" : "green"}">${client.status}</span>
+      <span class="avatar">${escapeHtml(client.initials)}</span>
+      <span><strong>${escapeHtml(client.name)}</strong><small>${escapeHtml(client.goal)}</small></span>
+      <span class="pill ${getStatusTone(client.status)}">${escapeHtml(client.status)}</span>
     `;
-    button.addEventListener("click", () => selectClient(index));
+    button.addEventListener("click", () => selectClient(client.id));
     clientList.append(button);
   });
 };
 
-const selectClient = (index) => {
-  const client = clients[index];
-  document.querySelectorAll(".client-button").forEach((button, buttonIndex) => {
-    button.classList.toggle("active", buttonIndex === index);
+const clearProfile = () => {
+  profile.avatar.textContent = "--";
+  profile.name.textContent = "No client selected";
+  profile.level.textContent = "Client management";
+  profile.goal.textContent = "Add a client to start tracking goals, attendance, sessions, and coaching notes.";
+  profile.progress.textContent = "--";
+  profile.attendance.textContent = "--";
+  profile.session.textContent = "--";
+  profile.note.textContent = "No coaching note yet.";
+  editClientButton.disabled = true;
+  deleteClientButton.disabled = true;
+};
+
+const selectClient = (clientId = activeClientId) => {
+  const client = clients.find((item) => item.id === clientId) || clients[0];
+
+  if (!client) {
+    activeClientId = null;
+    clearProfile();
+    renderClients();
+    return;
+  }
+
+  activeClientId = client.id;
+  document.querySelectorAll(".client-button").forEach((button) => {
+    button.classList.toggle("active", button.textContent.includes(client.name));
   });
+
   profile.avatar.textContent = client.initials;
   profile.name.textContent = client.name;
   profile.level.textContent = client.level;
@@ -143,6 +284,9 @@ const selectClient = (index) => {
   profile.attendance.textContent = client.attendance;
   profile.session.textContent = client.nextSession;
   profile.note.textContent = client.note;
+  editClientButton.disabled = false;
+  deleteClientButton.disabled = false;
+  renderClients();
 };
 
 const renderWorkout = (type = "Strength") => {
@@ -156,11 +300,11 @@ const renderWorkout = (type = "Strength") => {
     card.className = "exercise-card";
     card.innerHTML = `
       <div>
-        <strong>${name}</strong>
+        <strong>${escapeHtml(name)}</strong>
         <div class="exercise-meta">
-          <span>${sets}</span>
-          <span>${reps}</span>
-          <span>${rest}</span>
+          <span>${escapeHtml(sets)}</span>
+          <span>${escapeHtml(reps)}</span>
+          <span>${escapeHtml(rest)}</span>
         </div>
       </div>
       <button class="mini-button" type="button">Edit</button>
@@ -177,22 +321,23 @@ const renderLibrary = (filter = "All muscle groups") => {
     .forEach(([name, group, equipment]) => {
       const item = document.createElement("article");
       item.className = "library-item";
-      item.innerHTML = `<strong>${name}</strong><small>${group} - ${equipment}</small>`;
+      item.innerHTML = `<strong>${escapeHtml(name)}</strong><small>${escapeHtml(group)} - ${escapeHtml(equipment)}</small>`;
       list.append(item);
     });
 };
 
 const renderSessions = () => {
   const grid = document.querySelector("[data-session-grid]");
+  grid.innerHTML = "";
   sessions.forEach(([name, time, workout, status, color]) => {
     const card = document.createElement("article");
     card.className = "session-card";
     card.innerHTML = `
       <header>
-        <div><strong>${name}</strong><small>${time}</small></div>
-        <span class="pill ${color}">${status}</span>
+        <div><strong>${escapeHtml(name)}</strong><small>${escapeHtml(time)}</small></div>
+        <span class="pill ${escapeHtml(color)}">${escapeHtml(status)}</span>
       </header>
-      <p>${workout}</p>
+      <p>${escapeHtml(workout)}</p>
       <footer>
         <button class="mini-button" type="button">Complete</button>
         <button class="mini-button" type="button">Notes</button>
@@ -204,15 +349,16 @@ const renderSessions = () => {
 
 const renderCheckins = () => {
   const grid = document.querySelector("[data-checkin-grid]");
+  grid.innerHTML = "";
   checkins.forEach(([name, update, signal, status], index) => {
     const card = document.createElement("article");
     card.className = "checkin-card";
     card.innerHTML = `
       <header>
-        <div><strong>${name}</strong><small>${signal}</small></div>
-        <span class="pill ${index === 2 ? "green" : "coral"}">${status}</span>
+        <div><strong>${escapeHtml(name)}</strong><small>${escapeHtml(signal)}</small></div>
+        <span class="pill ${index === 2 ? "green" : "coral"}">${escapeHtml(status)}</span>
       </header>
-      <p>${update}</p>
+      <p>${escapeHtml(update)}</p>
       <footer>
         <button class="mini-button" type="button">Reply</button>
         <button class="mini-button" type="button">Open Profile</button>
@@ -233,6 +379,45 @@ const renderBars = () => {
     bar.textContent = index % 2 === 0 ? value : "";
     chart.append(bar);
   });
+};
+
+const fillClientForm = (client) => {
+  clientForm.elements.name.value = client.name;
+  clientForm.elements.goal.value = client.goal;
+  clientForm.elements.level.value = client.level;
+  clientForm.elements.progress.value = client.progress;
+  clientForm.elements.attendance.value = client.attendance;
+  clientForm.elements.nextSession.value = client.nextSession;
+  clientForm.elements.status.value = client.status;
+  clientForm.elements.note.value = client.note;
+};
+
+const openDrawer = (client = null) => {
+  editingClientId = client?.id ?? null;
+  clientForm.reset();
+
+  if (client) {
+    drawerTitle.textContent = "Edit Client";
+    clientSubmit.textContent = "Save Client";
+    fillClientForm(client);
+  } else {
+    drawerTitle.textContent = "New Client";
+    clientSubmit.textContent = "Add Client";
+    clientForm.elements.progress.value = "0%";
+    clientForm.elements.attendance.value = "New";
+    clientForm.elements.nextSession.value = "Not scheduled";
+    clientForm.elements.status.value = "New";
+  }
+
+  drawer.hidden = false;
+  drawer.setAttribute("aria-hidden", "false");
+  drawer.querySelector("input").focus();
+};
+
+const closeDrawer = () => {
+  drawer.hidden = true;
+  drawer.setAttribute("aria-hidden", "true");
+  editingClientId = null;
 };
 
 document.querySelectorAll("[data-workout-day]").forEach((button) => {
@@ -261,64 +446,90 @@ document.querySelectorAll("[data-nav-link]").forEach((link) => {
   });
 });
 
-document.querySelector("[data-search]").addEventListener("input", (event) => {
-  const query = event.target.value.toLowerCase();
-  document.querySelectorAll(".client-button").forEach((button) => {
-    button.hidden = !button.textContent.toLowerCase().includes(query);
-  });
-});
-
-const drawer = document.querySelector("[data-drawer]");
-const openDrawer = () => {
-  drawer.hidden = false;
-  drawer.setAttribute("aria-hidden", "false");
-  drawer.querySelector("input").focus();
-};
-const closeDrawer = () => {
-  drawer.hidden = true;
-  drawer.setAttribute("aria-hidden", "true");
-};
+searchInput.addEventListener("input", renderClients);
 
 document.querySelector("[data-open-client]").addEventListener("click", () => {
   openDrawer();
 });
+
 document.querySelector("[data-close-client]").addEventListener("click", () => {
   closeDrawer();
 });
+
 drawer.addEventListener("click", (event) => {
   if (event.target === drawer) closeDrawer();
 });
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !drawer.hidden) closeDrawer();
 });
 
-document.querySelector("[data-client-form]").addEventListener("submit", (event) => {
+editClientButton.addEventListener("click", () => {
+  const client = getActiveClient();
+  if (client) openDrawer(client);
+});
+
+deleteClientButton.addEventListener("click", () => {
+  const client = getActiveClient();
+  if (!client) return;
+
+  const shouldDelete = window.confirm(`Delete ${client.name}? This cannot be undone.`);
+  if (!shouldDelete) return;
+
+  clients = clients.filter((item) => item.id !== client.id);
+  activeClientId = clients[0]?.id ?? null;
+  saveClients();
+  updateClientMetrics();
+  renderClients();
+  selectClient(activeClientId);
+});
+
+clientForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
-  const name = String(form.get("name"));
-  clients.unshift({
-    initials: name
-      .split(" ")
-      .map((part) => part[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase(),
+  const name = String(form.get("name")).trim();
+  const clientValues = {
     name,
+    initials: getInitials(name),
     level: String(form.get("level")),
-    goal: String(form.get("goal")),
-    progress: "0%",
-    attendance: "New",
-    nextSession: "Not scheduled",
-    status: "New",
-    note: "New client added. Schedule onboarding and baseline assessment."
-  });
+    goal: String(form.get("goal")).trim(),
+    progress: String(form.get("progress")).trim() || "0%",
+    attendance: String(form.get("attendance")).trim() || "New",
+    nextSession: String(form.get("nextSession")).trim() || "Not scheduled",
+    status: String(form.get("status")).trim() || "Active",
+    note: String(form.get("note")).trim() || "No coaching note yet."
+  };
+
+  if (editingClientId) {
+    const clientIndex = clients.findIndex((client) => client.id === editingClientId);
+    if (clientIndex !== -1) {
+      clients[clientIndex] = withClientDefaults({
+        ...clients[clientIndex],
+        ...clientValues,
+        id: editingClientId
+      });
+      activeClientId = editingClientId;
+    }
+  } else {
+    const client = withClientDefaults({
+      ...clientValues,
+      id: createId()
+    });
+    clients.unshift(client);
+    activeClientId = client.id;
+  }
+
+  saveClients();
+  updateClientMetrics();
   renderClients();
-  selectClient(0);
+  selectClient(activeClientId);
   event.currentTarget.reset();
   closeDrawer();
 });
 
+updateClientMetrics();
 renderClients();
+selectClient(activeClientId);
 renderWorkout();
 renderLibrary();
 renderSessions();

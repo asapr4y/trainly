@@ -34,7 +34,7 @@
           <span class="status-dot"></span>
           <div>
             <strong>Alex Rivera</strong>
-            <small>14 active clients</small>
+            <small><span data-coach-count>4</span> active clients</small>
           </div>
         </div>
       </aside>
@@ -111,7 +111,7 @@
         <section class="metric-grid" aria-label="Coach metrics">
           <article class="metric-card">
             <span>Active Clients</span>
-            <strong>14</strong>
+            <strong data-active-clients>4</strong>
             <small>+3 this month</small>
           </article>
           <article class="metric-card">
@@ -172,6 +172,11 @@
                 <p data-profile-note>
                   Knee feels stable. Increase goblet squat volume before moving back to heavy front squats.
                 </p>
+              </div>
+
+              <div class="profile-actions">
+                <button class="secondary-action" type="button" data-edit-client>Edit Client</button>
+                <button class="danger-action" type="button" data-delete-client>Delete Client</button>
               </div>
             </article>
           </div>
@@ -282,7 +287,7 @@
     <div class="drawer-backdrop" data-drawer hidden>
       <aside class="drawer" aria-label="Create client" aria-modal="true" role="dialog">
         <div class="panel-header">
-          <span>New Client</span>
+          <span data-drawer-title>New Client</span>
           <button class="icon-button" type="button" aria-label="Close" data-close-client>x</button>
         </div>
         <form data-client-form>
@@ -302,7 +307,27 @@
               <option>Advanced</option>
             </select>
           </label>
-          <button class="primary-action" type="submit">Add Client</button>
+          <label>
+            Goal progress
+            <input name="progress" placeholder="e.g. 72%" />
+          </label>
+          <label>
+            Attendance
+            <input name="attendance" placeholder="e.g. 94%" />
+          </label>
+          <label>
+            Next session
+            <input name="nextSession" placeholder="e.g. Friday, 8:00 AM" />
+          </label>
+          <label>
+            Status
+            <input name="status" placeholder="e.g. Ready" />
+          </label>
+          <label>
+            Coach note
+            <textarea name="note" rows="4" placeholder="Add coaching context"></textarea>
+          </label>
+          <button class="primary-action" type="submit" data-client-submit>Add Client</button>
         </form>
       </aside>
     </div>

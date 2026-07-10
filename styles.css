@@ -38,7 +38,8 @@ body {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -186,10 +187,10 @@ a {
 
 .search input,
 .drawer input,
+.drawer textarea,
 .drawer select,
 .filter-row select {
   width: 100%;
-  min-height: 2.75rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -197,8 +198,22 @@ a {
   padding: 0 0.9rem;
 }
 
+.search input,
+.drawer input,
+.drawer select,
+.filter-row select {
+  min-height: 2.75rem;
+}
+
+.drawer textarea {
+  min-height: 6.5rem;
+  padding-top: 0.8rem;
+  resize: vertical;
+}
+
 .primary-action,
-.secondary-action {
+.secondary-action,
+.danger-action {
   min-height: 2.75rem;
   display: inline-flex;
   align-items: center;
@@ -221,10 +236,28 @@ a {
   background: var(--green-strong);
 }
 
+.primary-action:disabled,
+.secondary-action:disabled,
+.danger-action:disabled,
+.mini-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
 .secondary-action {
   background: var(--surface);
   border-color: var(--line);
   color: var(--text);
+}
+
+.danger-action {
+  background: #fff4f2;
+  border-color: #ffd0ca;
+  color: var(--coral);
+}
+
+.danger-action:hover {
+  background: #ffe7e4;
 }
 
 .section,
@@ -466,6 +499,13 @@ h3 {
   background: #f4fbf6;
 }
 
+.empty-state {
+  margin: 0;
+  padding: 1rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .avatar {
   width: 2.65rem;
   height: 2.65rem;
@@ -499,6 +539,16 @@ h3 {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: #fbfdfb;
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.note-box + .profile-actions {
+  margin-top: 1rem;
 }
 
 dt {
@@ -674,6 +724,7 @@ meter {
   padding: 1.25rem;
   background: var(--surface);
   box-shadow: -20px 0 45px rgba(0, 0, 0, 0.15);
+  overflow-y: auto;
 }
 
 .drawer form {
