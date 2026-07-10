@@ -12,8 +12,8 @@
   </head>
   <body>
     <div class="shell">
-      <aside class="sidebar" aria-label="Primary">
-        <a class="brand" href="#dashboard" aria-label="Trainly dashboard">
+      <aside class="sidebar" aria-label="Primary" data-sidebar>
+        <a class="brand" href="#dashboard" aria-label="Trainly dashboard" data-view-link="dashboard">
           <span class="brand-mark">T</span>
           <span>
             <strong>Trainly</strong>
@@ -34,7 +34,7 @@
           <span class="status-dot"></span>
           <div>
             <strong>Alex Rivera</strong>
-            <small><span data-coach-count>4</span> active clients</small>
+            <small><span data-coach-count>0</span> active clients</small>
           </div>
         </div>
       </aside>
@@ -47,138 +47,77 @@
             <span></span>
           </button>
 
-          <div class="mobile-brand">
+          <a class="mobile-brand" href="#dashboard" data-view-link="dashboard">
             <span class="brand-mark">T</span>
             <strong>Trainly</strong>
-          </div>
+          </a>
 
           <label class="search">
             <span>Search</span>
-            <input type="search" placeholder="Find clients, workouts, sessions..." data-search />
+            <input type="search" placeholder="Search the active workspace..." data-search />
           </label>
 
-          <button class="primary-action" type="button" data-open-client>New Client</button>
+          <button class="primary-action" type="button" data-quick-add>New Client</button>
         </header>
 
         <section id="dashboard" class="section hero-section" data-view="dashboard">
           <div class="hero-copy">
             <p class="eyebrow">Fitness coaching command center</p>
-            <h1>Manage every client, workout, session, and progress update from one clean workspace.</h1>
+            <h1>Run the week from one coaching workspace.</h1>
             <p>
-              Trainly helps coaches stay on top of programming, attendance, check-ins, and measurable results without
-              burying the work in spreadsheets.
+              Trainly keeps client context, programming, session status, progress signals, and check-ins in one
+              operational dashboard.
             </p>
             <div class="hero-actions">
               <a class="primary-action" href="#clients" data-view-link="clients">Review Clients</a>
-              <a class="secondary-action" href="#workouts" data-view-link="workouts">Build Plan</a>
+              <a class="secondary-action" href="#sessions" data-view-link="sessions">Schedule Session</a>
             </div>
           </div>
 
-          <div class="focus-panel" aria-label="Today's coaching focus">
+          <article class="focus-panel" aria-label="Upcoming coaching focus">
             <div class="panel-header">
-              <span>Today</span>
-              <strong>6 sessions</strong>
+              <span>Next 7 days</span>
+              <strong data-focus-count>0 sessions</strong>
             </div>
-            <div class="focus-list">
-              <article>
-                <span class="time">08:00</span>
-                <div>
-                  <strong>Maya Chen</strong>
-                  <small>Lower strength block</small>
-                </div>
-                <span class="pill green">Ready</span>
-              </article>
-              <article>
-                <span class="time">11:30</span>
-                <div>
-                  <strong>Jon Bell</strong>
-                  <small>Mobility check and deload</small>
-                </div>
-                <span class="pill amber">Review</span>
-              </article>
-              <article>
-                <span class="time">17:00</span>
-                <div>
-                  <strong>Sofia Cruz</strong>
-                  <small>Squat PR testing</small>
-                </div>
-                <span class="pill blue">PR day</span>
-              </article>
-            </div>
-          </div>
+            <div class="focus-list" data-dashboard-focus></div>
+          </article>
         </section>
 
         <section class="metric-grid" aria-label="Coach metrics" data-view="dashboard">
           <article class="metric-card">
             <span>Active Clients</span>
-            <strong data-active-clients>4</strong>
-            <small>+3 this month</small>
+            <strong data-active-clients>0</strong>
+            <small data-client-metric-detail>Stored client roster</small>
           </article>
           <article class="metric-card">
-            <span>Weekly Sessions</span>
-            <strong>31</strong>
-            <small>89% completed</small>
+            <span>Upcoming Sessions</span>
+            <strong data-upcoming-sessions>0</strong>
+            <small>Next 7 days</small>
           </article>
           <article class="metric-card">
-            <span>Plans Due</span>
-            <strong>5</strong>
-            <small>2 high priority</small>
+            <span>Avg Goal Progress</span>
+            <strong data-average-progress>0%</strong>
+            <small>Across clients</small>
           </article>
           <article class="metric-card">
-            <span>Check-ins</span>
-            <strong>8</strong>
-            <small>4 need replies</small>
+            <span>Open Check-ins</span>
+            <strong data-open-checkins>0</strong>
+            <small>Need coach action</small>
           </article>
         </section>
 
-        <section id="clients" class="section two-column" data-view="clients" hidden>
-          <div class="section-heading">
-            <p class="eyebrow">Client management</p>
-            <h2>Keep every athlete's context in reach.</h2>
+        <section id="clients" class="section" data-view="clients" hidden>
+          <div class="section-heading row-heading">
+            <div>
+              <p class="eyebrow">Client management</p>
+              <h2>Keep every athlete's context in reach.</h2>
+            </div>
+            <button class="primary-action" type="button" data-action="client:new">New Client</button>
           </div>
 
           <div class="client-layout">
             <div class="client-list" data-client-list></div>
-
-            <article class="client-profile" data-client-profile>
-              <div class="profile-top">
-                <div>
-                  <span class="avatar" data-profile-avatar>MC</span>
-                </div>
-                <div>
-                  <p class="eyebrow" data-profile-level>Intermediate</p>
-                  <h3 data-profile-name>Maya Chen</h3>
-                  <p data-profile-goal>Build lower-body strength while maintaining weekly conditioning.</p>
-                </div>
-              </div>
-
-              <dl class="profile-stats">
-                <div>
-                  <dt>Goal Progress</dt>
-                  <dd data-profile-progress>72%</dd>
-                </div>
-                <div>
-                  <dt>Attendance</dt>
-                  <dd data-profile-attendance>94%</dd>
-                </div>
-                <div>
-                  <dt>Next Session</dt>
-                  <dd data-profile-session>Today, 8:00 AM</dd>
-                </div>
-              </dl>
-
-              <div class="note-box">
-                <strong>Coach note</strong>
-                <p data-profile-note>
-                  Knee feels stable. Increase goblet squat volume before moving back to heavy front squats.
-                </p>
-              </div>
-
-              <div class="profile-actions">
-                <button class="secondary-action" type="button" data-edit-client>Edit Client</button>
-                <button class="danger-action" type="button" data-delete-client>Delete Client</button>
-              </div>
-            </article>
+            <article class="client-profile" data-client-profile></article>
           </div>
         </section>
 
@@ -186,47 +125,31 @@
           <div class="section-heading row-heading">
             <div>
               <p class="eyebrow">Workout builder</p>
-              <h2>Create plans coaches can actually use during sessions.</h2>
+              <h2>Create plans coaches can assign and reuse.</h2>
             </div>
-            <div class="segmented" role="tablist" aria-label="Workout day">
-              <button type="button" class="active" data-workout-day="Strength">Strength</button>
-              <button type="button" data-workout-day="Conditioning">Conditioning</button>
-              <button type="button" data-workout-day="Mobility">Mobility</button>
-            </div>
+            <button class="primary-action" type="button" data-action="workout:new">New Plan</button>
           </div>
 
           <div class="builder-grid">
-            <article class="plan-card">
-              <div class="panel-header">
-                <span data-plan-title>Lower Strength A</span>
-                <strong data-plan-duration>58 min</strong>
-              </div>
-              <div class="exercise-stack" data-exercise-stack></div>
-            </article>
-
-            <article class="library-panel">
-              <div class="panel-header">
-                <span>Exercise Library</span>
-                <strong>42 moves</strong>
-              </div>
-              <label class="filter-row">
-                <span>Filter</span>
-                <select data-library-filter>
-                  <option>All muscle groups</option>
-                  <option>Lower body</option>
-                  <option>Upper body</option>
-                  <option>Core</option>
-                </select>
-              </label>
-              <div class="library-list" data-library-list></div>
-            </article>
+            <div class="stack-list" data-workout-list></div>
+            <article class="detail-panel" data-workout-detail></article>
           </div>
         </section>
 
         <section id="sessions" class="section" data-view="sessions" hidden>
-          <div class="section-heading">
-            <p class="eyebrow">Session scheduling</p>
-            <h2>Track upcoming sessions, attendance, and coaching notes.</h2>
+          <div class="section-heading row-heading">
+            <div>
+              <p class="eyebrow">Session scheduling</p>
+              <h2>Track attendance, status, and notes.</h2>
+            </div>
+            <div class="toolbar-actions">
+              <div class="segmented" role="tablist" aria-label="Session filter">
+                <button type="button" class="active" data-session-filter="upcoming">Upcoming</button>
+                <button type="button" data-session-filter="past">Past</button>
+                <button type="button" data-session-filter="all">All</button>
+              </div>
+              <button class="primary-action" type="button" data-action="session:new">New Session</button>
+            </div>
           </div>
 
           <div class="session-grid" data-session-grid></div>
@@ -236,47 +159,43 @@
           <div class="section-heading row-heading">
             <div>
               <p class="eyebrow">Progress tracking</p>
-              <h2>Show clients the signal behind the work.</h2>
+              <h2>Turn check-ins and measurements into a signal.</h2>
             </div>
-            <button class="secondary-action" type="button" data-refresh-progress>Refresh View</button>
+            <div class="toolbar-actions">
+              <label class="filter-row compact">
+                <span>Client</span>
+                <select data-progress-client></select>
+              </label>
+              <button class="primary-action" type="button" data-action="progress:new">New Entry</button>
+            </div>
           </div>
 
           <div class="progress-layout">
             <article class="chart-panel">
               <div class="panel-header">
-                <span>Strength PR Trend</span>
-                <strong>12 weeks</strong>
+                <span data-progress-chart-title>Goal Progress</span>
+                <strong data-progress-chart-meta>0 entries</strong>
               </div>
-              <div class="bar-chart" data-bar-chart aria-label="Strength progress chart"></div>
+              <div class="progress-chart" data-progress-chart aria-label="Goal progress chart"></div>
             </article>
-
-            <article class="goal-panel">
-              <div class="panel-header">
-                <span>Goal Milestones</span>
-                <strong>3 active</strong>
-              </div>
-              <div class="goal-list">
-                <div>
-                  <span>Squat 100 kg</span>
-                  <meter min="0" max="100" value="76">76%</meter>
-                </div>
-                <div>
-                  <span>3 sessions weekly</span>
-                  <meter min="0" max="100" value="92">92%</meter>
-                </div>
-                <div>
-                  <span>Mobility routine</span>
-                  <meter min="0" max="100" value="58">58%</meter>
-                </div>
-              </div>
-            </article>
+            <div class="stack-list" data-progress-list></div>
           </div>
         </section>
 
         <section id="checkins" class="section" data-view="checkins" hidden>
-          <div class="section-heading">
-            <p class="eyebrow">Client check-ins</p>
-            <h2>Catch recovery issues before they become missed sessions.</h2>
+          <div class="section-heading row-heading">
+            <div>
+              <p class="eyebrow">Client check-ins</p>
+              <h2>Catch recovery issues before they become missed sessions.</h2>
+            </div>
+            <div class="toolbar-actions">
+              <div class="segmented" role="tablist" aria-label="Check-in filter">
+                <button type="button" class="active" data-checkin-filter="open">Open</button>
+                <button type="button" data-checkin-filter="resolved">Resolved</button>
+                <button type="button" data-checkin-filter="all">All</button>
+              </div>
+              <button class="primary-action" type="button" data-action="checkin:new">New Check-in</button>
+            </div>
           </div>
 
           <div class="checkin-grid" data-checkin-grid></div>
@@ -285,50 +204,12 @@
     </div>
 
     <div class="drawer-backdrop" data-drawer hidden>
-      <aside class="drawer" aria-label="Create client" aria-modal="true" role="dialog">
+      <aside class="drawer" aria-modal="true" role="dialog" aria-labelledby="drawer-title">
         <div class="panel-header">
-          <span data-drawer-title>New Client</span>
-          <button class="icon-button" type="button" aria-label="Close" data-close-client>x</button>
+          <span id="drawer-title" data-drawer-title>New Item</span>
+          <button class="icon-button" type="button" aria-label="Close" data-close-drawer>x</button>
         </div>
-        <form data-client-form>
-          <label>
-            Full name
-            <input name="name" required placeholder="e.g. Niko Santos" />
-          </label>
-          <label>
-            Main goal
-            <input name="goal" required placeholder="e.g. Improve strength and consistency" />
-          </label>
-          <label>
-            Training level
-            <select name="level">
-              <option>Beginner</option>
-              <option>Intermediate</option>
-              <option>Advanced</option>
-            </select>
-          </label>
-          <label>
-            Goal progress
-            <input name="progress" placeholder="e.g. 72%" />
-          </label>
-          <label>
-            Attendance
-            <input name="attendance" placeholder="e.g. 94%" />
-          </label>
-          <label>
-            Next session
-            <input name="nextSession" placeholder="e.g. Friday, 8:00 AM" />
-          </label>
-          <label>
-            Status
-            <input name="status" placeholder="e.g. Ready" />
-          </label>
-          <label>
-            Coach note
-            <textarea name="note" rows="4" placeholder="Add coaching context"></textarea>
-          </label>
-          <button class="primary-action" type="submit" data-client-submit>Add Client</button>
-        </form>
+        <form data-drawer-form novalidate></form>
       </aside>
     </div>
 
