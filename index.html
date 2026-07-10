@@ -60,30 +60,39 @@
           <button class="primary-action" type="button" data-quick-add>New Client</button>
         </header>
 
-        <section id="dashboard" class="section hero-section" data-view="dashboard">
-          <div class="hero-copy">
-            <p class="eyebrow">Fitness coaching command center</p>
-            <h1>Run the week from one coaching workspace.</h1>
-            <p>
-              Trainly keeps client context, programming, session status, progress signals, and check-ins in one
-              operational dashboard.
-            </p>
+        <section id="dashboard" class="section dashboard-view" data-view="dashboard">
+          <div class="dashboard-command">
+            <div class="command-copy">
+              <p class="eyebrow">Coach command center</p>
+              <h1>Know what needs attention before the next session starts.</h1>
+              <p>
+                Trainly turns today's schedule, client progress, and unresolved check-ins into a short coaching queue
+                you can act on immediately.
+              </p>
+            </div>
+
             <div class="hero-actions">
-              <a class="primary-action" href="#clients" data-view-link="clients">Review Clients</a>
-              <a class="secondary-action" href="#sessions" data-view-link="sessions">Schedule Session</a>
+              <a class="primary-action" href="#sessions" data-view-link="sessions">Schedule Session</a>
+              <a class="secondary-action" href="#checkins" data-view-link="checkins">Review Check-ins</a>
+            </div>
+
+            <div class="readiness-panel" aria-label="Coaching readiness">
+              <span>Workspace readiness</span>
+              <strong data-dashboard-readiness>0%</strong>
+              <meter min="0" max="100" value="0" data-dashboard-readiness-meter>0%</meter>
             </div>
           </div>
 
-          <article class="focus-panel" aria-label="Upcoming coaching focus">
+          <article class="spotlight-panel" aria-label="Next priority session">
             <div class="panel-header">
-              <span>Next 7 days</span>
+              <span>Next priority</span>
               <strong data-focus-count>0 sessions</strong>
             </div>
-            <div class="focus-list" data-dashboard-focus></div>
+            <div data-dashboard-spotlight></div>
           </article>
         </section>
 
-        <section class="metric-grid" aria-label="Coach metrics" data-view="dashboard">
+        <section class="metric-grid dashboard-metrics" aria-label="Coach metrics" data-view="dashboard">
           <article class="metric-card">
             <span>Active Clients</span>
             <strong data-active-clients>0</strong>
@@ -103,6 +112,24 @@
             <span>Open Check-ins</span>
             <strong data-open-checkins>0</strong>
             <small>Need coach action</small>
+          </article>
+        </section>
+
+        <section class="dashboard-lower" data-view="dashboard">
+          <article class="focus-panel" aria-label="Upcoming coaching focus">
+            <div class="panel-header">
+              <span>Upcoming queue</span>
+              <strong>Next 7 days</strong>
+            </div>
+            <div class="focus-list" data-dashboard-focus></div>
+          </article>
+
+          <article class="attention-panel" aria-label="Open check-ins">
+            <div class="panel-header">
+              <span>Needs reply</span>
+              <strong data-dashboard-open-count>0 open</strong>
+            </div>
+            <div class="attention-list" data-dashboard-checkins></div>
           </article>
         </section>
 

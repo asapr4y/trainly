@@ -378,6 +378,11 @@ const elements = {
   progressList: document.querySelector("[data-progress-list]"),
   checkinGrid: document.querySelector("[data-checkin-grid]"),
   dashboardFocus: document.querySelector("[data-dashboard-focus]"),
+  dashboardSpotlight: document.querySelector("[data-dashboard-spotlight]"),
+  dashboardCheckins: document.querySelector("[data-dashboard-checkins]"),
+  dashboardOpenCount: document.querySelector("[data-dashboard-open-count]"),
+  dashboardReadiness: document.querySelector("[data-dashboard-readiness]"),
+  dashboardReadinessMeter: document.querySelector("[data-dashboard-readiness-meter]"),
   focusCount: document.querySelector("[data-focus-count]"),
   coachCount: document.querySelector("[data-coach-count]"),
   activeClients: document.querySelector("[data-active-clients]"),
@@ -555,7 +560,11 @@ const renderDashboard = () => {
   const average = clients.length
     ? Math.round(clients.reduce((total, client) => total + parsePercent(client.progress), 0) / clients.length)
     : 0;
-  const openCount = checkins.filter((checkin) => checkin.status === "open").length;
+  const openCheckins = checkins
+    .filter((checkin) => checkin.status === "open")
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const openCount = openCheckins.length;
+  const readiness = Math.round((average + Math.max(0, 100 - openCount * 12) + Math.min(upcoming.length * 18, 100)) / 3);
 
   elements.coachCount.textContent = clients.length;
   elements.activeClients.textContent = clients.length;
@@ -564,6 +573,35 @@ const renderDashboard = () => {
   elements.averageProgress.textContent = `${average}%`;
   elements.openCheckins.textContent = openCount;
   elements.focusCount.textContent = upcoming.length === 1 ? "1 session" : `${upcoming.length} sessions`;
+  elements.dashboardOpenCount.textContent = openCount === 1 ? "1 open" : `${openCount} open`;
+  elements.dashboardReadiness.textContent = `${readiness}%`;
+  elements.dashboardReadinessMeter.value = readiness;
+  elements.dashboardReadinessMeter.textContent = `${readiness}%`;
+
+  const nextSession = upcoming[0];
+  elements.dashboardSpotlight.innerHTML = nextSession
+    ? `
+      <div class="spotlight-client">
+        <span class="avatar">${escapeHtml(getInitials(getClientName(nextSession.clientId)))}</span>
+        <div>
+          <strong>${escapeHtml(getClientName(nextSession.clientId))}</strong>
+          <small>${escapeHtml(formatDateTime(nextSession.startsAt))}</small>
+        </div>
+      </div>
+      <p>${escapeHtml(nextSession.type)}</p>
+      ${nextSession.notes ? `<p class="muted-copy">${escapeHtml(nextSession.notes)}</p>` : ""}
+      <div class="spotlight-actions">
+        <button class="mini-button" type="button" data-action="session:complete" data-id="${escapeHtml(nextSession.id)}">Mark Complete</button>
+        <button class="mini-button" type="button" data-action="session:edit" data-id="${escapeHtml(nextSession.id)}">Adjust</button>
+      </div>
+    `
+    : `
+      <div class="spotlight-empty">
+        <strong>No sessions queued</strong>
+        <p class="muted-copy">Schedule the next client session to build out the coaching queue.</p>
+        <button class="mini-button" type="button" data-action="session:new">Schedule session</button>
+      </div>
+    `;
 
   elements.dashboardFocus.innerHTML = upcoming.length
     ? upcoming
@@ -582,6 +620,24 @@ const renderDashboard = () => {
         )
         .join("")
     : emptyState("No upcoming sessions in the next week.", "Schedule one", "session:new");
+
+  elements.dashboardCheckins.innerHTML = openCheckins.length
+    ? openCheckins
+        .slice(0, 4)
+        .map(
+          (checkin) => `
+            <article>
+              <div>
+                <strong>${escapeHtml(getClientName(checkin.clientId))}</strong>
+                <small>${escapeHtml(formatDateTime(checkin.createdAt))}</small>
+              </div>
+              <p>${escapeHtml(checkin.message)}</p>
+              <button class="mini-button" type="button" data-action="checkin:reply" data-id="${escapeHtml(checkin.id)}">Reply</button>
+            </article>
+          `
+        )
+        .join("")
+    : emptyState("No open check-ins. Client communication is clear.", "Create check-in", "checkin:new");
 };
 
 const renderClients = () => {
