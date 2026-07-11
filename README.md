@@ -30,3 +30,24 @@ http://localhost:4173
 ```powershell
 npm.cmd run build
 ```
+
+## Supabase
+
+Trainly now has an optional Supabase setup. Without credentials, the app continues to use `localStorage`.
+
+1. Create a Supabase project.
+2. Run `supabase/schema.sql` in the Supabase SQL editor.
+3. Add the project URL and anon key in browser DevTools:
+
+```js
+localStorage.setItem(
+  "trainly.supabase.config",
+  JSON.stringify({
+    url: "https://YOUR_PROJECT_REF.supabase.co",
+    anonKey: "YOUR_ANON_PUBLIC_KEY"
+  })
+);
+location.reload();
+```
+
+See `supabase/README.md` for details and security notes.

@@ -1,4 +1,18 @@
 const storage = typeof window !== "undefined" ? window.localStorage : null;
+const supabaseConfig = (() => {
+  if (typeof window === "undefined") return null;
+  if (window.TRAINLY_SUPABASE_CONFIG?.url && window.TRAINLY_SUPABASE_CONFIG?.anonKey) {
+    return window.TRAINLY_SUPABASE_CONFIG;
+  }
+
+  try {
+    const storedConfig = JSON.parse(storage?.getItem("trainly.supabase.config") || "null");
+    return storedConfig?.url && storedConfig?.anonKey ? storedConfig : null;
+  } catch {
+    return null;
+  }
+})();
+let supabaseWritesEnabled = false;
 
 const today = new Date();
 const toDateInput = (date) => date.toISOString().slice(0, 10);
@@ -64,7 +78,44 @@ const formatDate = (value) => {
   return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(date);
 };
 
-const createStore = (key, defaults, normalize) => ({
+const supabaseHeaders = (extra = {}) => ({
+  apikey: supabaseConfig?.anonKey || "",
+  Authorization: `Bearer ${supabaseConfig?.anonKey || ""}`,
+  "Content-Type": "application/json",
+  ...extra
+});
+
+const supabaseEndpoint = (table, query = "") =>
+  `${String(supabaseConfig?.url || "").replace(/\/$/, "")}/rest/v1/${table}${query}`;
+
+const fetchSupabaseRows = async (remote) => {
+  if (!supabaseConfig) return null;
+  const response = await fetch(supabaseEndpoint(remote.table, "?select=*"), {
+    headers: supabaseHeaders()
+  });
+  if (!response.ok) throw new Error(`Unable to load ${remote.table} from Supabase.`);
+  return response.json();
+};
+
+const replaceSupabaseRows = async (remote, items) => {
+  if (!supabaseConfig || !supabaseWritesEnabled) return;
+
+  const deleteResponse = await fetch(supabaseEndpoint(remote.table, "?id=not.is.null"), {
+    method: "DELETE",
+    headers: supabaseHeaders({ Prefer: "return=minimal" })
+  });
+  if (!deleteResponse.ok) throw new Error(`Unable to replace ${remote.table} rows.`);
+  if (items.length === 0) return;
+
+  const insertResponse = await fetch(supabaseEndpoint(remote.table), {
+    method: "POST",
+    headers: supabaseHeaders({ Prefer: "return=minimal" }),
+    body: JSON.stringify(items.map(remote.toRow))
+  });
+  if (!insertResponse.ok) throw new Error(`Unable to save ${remote.table} rows.`);
+};
+
+const createStore = (key, defaults, normalize, remote = null) => ({
   getAll() {
     if (!storage) return defaults.map(normalize);
 
@@ -79,9 +130,13 @@ const createStore = (key, defaults, normalize) => ({
       return defaults.map(normalize);
     }
   },
-  saveAll(items) {
+  saveLocal(items) {
     if (!storage) return;
     storage.setItem(key, JSON.stringify(items.map(normalize)));
+  },
+  saveAll(items) {
+    this.saveLocal(items);
+    if (remote) void replaceSupabaseRows(remote, items.map(normalize)).catch(console.error);
   },
   create(items, item) {
     const nextItem = normalize({ ...item, id: item.id || createId(key) });
@@ -338,12 +393,121 @@ const normalizeCheckin = (checkin) => ({
   status: checkin.status === "resolved" ? "resolved" : "open"
 });
 
+const remoteTables = {
+  clients: {
+    table: "clients",
+    fromRow: (row) =>
+      normalizeClient({
+        id: row.id,
+        initials: row.initials,
+        name: row.name,
+        level: row.level,
+        goal: row.goal,
+        progress: row.progress,
+        attendance: row.attendance,
+        status: row.status,
+        note: row.note
+      }),
+    toRow: (client) => ({
+      id: client.id,
+      initials: client.initials,
+      name: client.name,
+      level: client.level,
+      goal: client.goal,
+      progress: parsePercent(client.progress),
+      attendance: client.attendance,
+      status: client.status,
+      note: client.note
+    })
+  },
+  workouts: {
+    table: "workouts",
+    fromRow: (row) =>
+      normalizeWorkout({
+        id: row.id,
+        name: row.name,
+        focus: row.focus,
+        clientIds: row.client_ids,
+        exercises: row.exercises
+      }),
+    toRow: (workout) => ({
+      id: workout.id,
+      name: workout.name,
+      focus: workout.focus,
+      client_ids: workout.clientIds,
+      exercises: workout.exercises
+    })
+  },
+  sessions: {
+    table: "sessions",
+    fromRow: (row) =>
+      normalizeSession({
+        id: row.id,
+        clientId: row.client_id,
+        startsAt: row.starts_at,
+        type: row.type,
+        notes: row.notes,
+        status: row.status
+      }),
+    toRow: (session) => ({
+      id: session.id,
+      client_id: session.clientId || null,
+      starts_at: session.startsAt,
+      type: session.type,
+      notes: session.notes,
+      status: session.status
+    })
+  },
+  progress: {
+    table: "progress_entries",
+    fromRow: (row) =>
+      normalizeProgress({
+        id: row.id,
+        clientId: row.client_id,
+        date: row.entry_date,
+        progress: row.progress,
+        weight: row.weight,
+        measurement: row.measurement,
+        note: row.note
+      }),
+    toRow: (entry) => ({
+      id: entry.id,
+      client_id: entry.clientId || null,
+      entry_date: entry.date,
+      progress: entry.progress,
+      weight: entry.weight,
+      measurement: entry.measurement,
+      note: entry.note
+    })
+  },
+  checkins: {
+    table: "checkins",
+    fromRow: (row) =>
+      normalizeCheckin({
+        id: row.id,
+        clientId: row.client_id,
+        createdAt: row.created_at,
+        message: row.message,
+        reply: row.reply,
+        status: row.status
+      }),
+    toRow: (checkin) => ({
+      id: checkin.id,
+      client_id: checkin.clientId || null,
+      created_at: checkin.createdAt,
+      message: checkin.message,
+      reply: checkin.reply,
+      status: checkin.status
+    })
+  }
+};
+
 const stores = {
-  clients: createStore("trainly.clients.v1", defaultClients, normalizeClient),
-  workouts: createStore("trainly.workouts.v1", defaultWorkouts, normalizeWorkout),
-  sessions: createStore("trainly.sessions.v1", defaultSessions, normalizeSession),
-  progress: createStore("trainly.progress.v1", defaultProgress, normalizeProgress),
-  checkins: createStore("trainly.checkins.v1", defaultCheckins, normalizeCheckin)
+  clients: createStore("trainly.clients.v1", defaultClients, normalizeClient, remoteTables.clients),
+  workouts: createStore("trainly.workouts.v1", defaultWorkouts, normalizeWorkout, remoteTables.workouts),
+  sessions: createStore("trainly.sessions.v1", defaultSessions, normalizeSession, remoteTables.sessions),
+  progress: createStore("trainly.progress.v1", defaultProgress, normalizeProgress, remoteTables.progress),
+  checkins: createStore("trainly.checkins.v1", defaultCheckins, normalizeCheckin, remoteTables.checkins)
 };
 
 let clients = stores.clients.getAll();
@@ -358,6 +522,47 @@ let currentView = "dashboard";
 let sessionFilter = "upcoming";
 let checkinFilter = "open";
 let drawerContext = null;
+
+const hydrateFromSupabase = async () => {
+  if (!supabaseConfig) return;
+
+  const remoteData = await Promise.all(
+    Object.entries(remoteTables).map(async ([key, remote]) => {
+      const rows = await fetchSupabaseRows(remote);
+      return [key, rows.map(remote.fromRow)];
+    })
+  );
+  const remoteByKey = Object.fromEntries(remoteData);
+  const hasRemoteRows = Object.values(remoteByKey).some((items) => items.length > 0);
+
+  if (remoteByKey.clients.length) clients = remoteByKey.clients;
+  if (remoteByKey.workouts.length) workouts = remoteByKey.workouts;
+  if (remoteByKey.sessions.length) sessions = remoteByKey.sessions;
+  if (remoteByKey.progress.length) progressEntries = remoteByKey.progress;
+  if (remoteByKey.checkins.length) checkins = remoteByKey.checkins;
+
+  stores.clients.saveLocal(clients);
+  stores.workouts.saveLocal(workouts);
+  stores.sessions.saveLocal(sessions);
+  stores.progress.saveLocal(progressEntries);
+  stores.checkins.saveLocal(checkins);
+
+  supabaseWritesEnabled = true;
+
+  if (!hasRemoteRows) {
+    stores.clients.saveAll(clients);
+    stores.workouts.saveAll(workouts);
+    stores.sessions.saveAll(sessions);
+    stores.progress.saveAll(progressEntries);
+    stores.checkins.saveAll(checkins);
+  }
+};
+
+try {
+  await hydrateFromSupabase();
+} catch (error) {
+  console.warn("Trainly is using localStorage because Supabase could not be reached.", error);
+}
 
 const canonicalClientNames = {
   "client-maya": "Maya Chen",
